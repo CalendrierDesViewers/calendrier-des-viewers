@@ -93,5 +93,58 @@ for (let i = 1; i <= 25; i++) {
   calendar.appendChild(door);
 }
 </script>
+  <script>
+const supabaseUrl = "https://sjrohgtzoljsyhoswrqw.supabase.co";
+const publicKey = "sb_publishable_pJgjRdy-Q_lA7IjlXULXyA_GgPxYP88";
+
+document.querySelectorAll(".door").forEach((door, index) => {
+  door.onclick = async () => {
+    const day = index + 1;
+    const now = new Date();
+    const date = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Europe/Paris"
+    }).format(now);
+
+    const expected = String(day).padStart(2, "0") + "/12/2026";
+
+    if (date !== expected) {
+      alert("🔒 Cette porte est fermée !");
+      return;
+    }
+
+    const username = prompt("✨ Entre ton pseudo Twitch :");
+
+    if (!username || !username.trim()) return;
+
+    try {
+      const response = await fetch(
+        supabaseUrl + "/rest/v1/rpc/register_participation",
+        {
+          method: "POST",
+          headers: {
+            "apikey": publicKey,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            p_day: day,
+            p_username: username.trim()
+          })
+        }
+      );
+
+      if (!response.ok) {
+        alert("Impossible de valider la participation.");
+        return;
+      }
+
+      const result = await response.json();
+      alert(String(result));
+
+    } catch (error) {
+      alert("Erreur de connexion. Réessaie plus tard.");
+    }
+  };
+});
+</script>
 </body>
 </html>
