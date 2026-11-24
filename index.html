@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Calendrier des Viewers</title>
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, #294c40, #101b24 60%, #080d14);
+  color: #f5e6bd;
+  font-family: Georgia, serif;
+  text-align: center;
+}
+header {
+  padding: 45px 15px 20px;
+}
+h1 {
+  color: #e8c77a;
+  font-size: 36px;
+  text-shadow: 0 0 20px #b58c46;
+}
+.subtitle {
+  color: #d5c9ad;
+  line-height: 1.6;
+}
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  max-width: 850px;
+  margin: 30px auto;
+  padding: 15px;
+}
+.door {
+  aspect-ratio: 0.8;
+  border: 1px solid #b89a56;
+  border-radius: 45% 45% 8px 8px;
+  background: linear-gradient(145deg, #28483c, #111e26);
+  color: #e8c77a;
+  font-family: Georgia, serif;
+  font-size: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px #0006;
+}
+.door:hover {
+  box-shadow: 0 0 18px #d4af37;
+}
+.door span {
+  display: block;
+  font-size: 16px;
+  margin-top: 8px;
+}
+.door:last-child {
+  background: linear-gradient(145deg, #795523, #302016);
+}
+footer {
+  padding: 25px;
+  color: #b8aa8a;
+}
+@media(max-width: 600px) {
+  .calendar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>✦ ❄ ✦</div>
+  <h1>Le Calendrier des Viewers</h1>
+  <p class="subtitle">
+    Bienvenue dans un royaume enchanté.<br>
+    25 jours, 25 mystères, 25 surprises.
+  </p>
+  <p>✨ Tirage quotidien à 18h ✨</p>
+</header>
+<main class="calendar" id="calendar"></main>
+<footer>
+  Du 1er au 25 décembre 2026<br><br>
+  Aperçu du calendrier enchanté
+</footer>
+<script>
+const calendar = document.getElementById("calendar");
+for (let i = 1; i <= 25; i++) {
+  const door = document.createElement("button");
+  door.className = "door";
+  door.innerHTML = i + "<span>🔒</span>";
+  door.onclick = () => {
+    alert("Case " + i + " — Le mystère reste entier ! La participation sera disponible après la connexion à Supabase.");
+  };
+  calendar.appendChild(door);
+}
+</script>
+</body>
+</html>
