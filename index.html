@@ -1,150 +1,514 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Le Calendrier des Viewers</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+* { box-sizing: border-box; }
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse at top, #294c40, #101b24 60%, #080d14);
+  background: radial-gradient(ellipse at top, #284b38, #10251c 45%, #070e0c);
   color: #f5e6bd;
   font-family: Georgia, serif;
   text-align: center;
 }
-header {
-  padding: 45px 15px 20px;
-}
+header { padding: 45px 15px 25px; }
 h1 {
-  color: #e8c77a;
-  font-size: 36px;
-  text-shadow: 0 0 20px #b58c46;
+  color: #edce85;
+  font-size: clamp(30px, 6vw, 54px);
+  text-shadow: 0 0 25px #b58c46;
 }
+h2 { color: #e8c77a; }
 .subtitle {
-  color: #d5c9ad;
+  color: #d4c5a2;
+  font-style: italic;
   line-height: 1.6;
 }
 .calendar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  gap: 10px;
   max-width: 850px;
-  margin: 30px auto;
+  margin: auto;
   padding: 15px;
 }
 .door {
   aspect-ratio: 0.8;
-  border: 1px solid #b89a56;
-  border-radius: 45% 45% 8px 8px;
-  background: linear-gradient(145deg, #28483c, #111e26);
-  color: #e8c77a;
-  font-family: Georgia, serif;
-  font-size: 25px;
+  background: linear-gradient(145deg, #355640, #14291e);
+  border: 1px solid #8c9a70;
+  border-radius: 12px;
+  color: #f5e6bd;
+  font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 15px #0006;
+  box-shadow: inset 0 0 15px #0c1b12, 0 5px 15px #0005;
+  transition: transform .25s, box-shadow .25s;
 }
 .door:hover {
-  box-shadow: 0 0 18px #d4af37;
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px #c9a45c;
 }
-.door span {
-  display: block;
-  font-size: 16px;
-  margin-top: 8px;
+.door.legendary {
+  background: linear-gradient(145deg, #80602b, #30200e);
+  border: 2px solid #e8c77a;
+  box-shadow: 0 0 12px #b58c4655;
 }
-.door:last-child {
-  background: linear-gradient(145deg, #795523, #302016);
+.number { display: block; font-size: 23px; }
+.symbol { display: block; font-size: 27px; margin: 8px 0; }
+.status { font-size: 11px; }
+.locked { opacity: .65; }
+.panel {
+  max-width: 750px;
+  margin: 30px auto;
+  padding: 25px 15px;
+  border: 1px solid #8d7545;
+  border-radius: 15px;
+  background: #10251de8;
 }
-footer {
+button, input, textarea { font: inherit; }
+.action {
+  background: #d9b66c;
+  color: #241b0d;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  margin: 8px;
+}
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  background: #14291f;
+  border: 1px solid #a58a52;
+  color: #fff1ce;
+  border-radius: 8px;
+}
+dialog {
+  width: min(90%, 480px);
+  background: #183326;
+  color: #f5e6bd;
+  border: 2px solid #d6b36b;
+  border-radius: 18px;
   padding: 25px;
-  color: #b8aa8a;
+  text-align: center;
+  box-shadow: 0 0 45px #d6b36b55;
 }
-@media(max-width: 600px) {
-  .calendar {
-    grid-template-columns: repeat(3, 1fr);
-  }
+dialog[open] { animation: reveal .4s ease; }
+dialog::backdrop { background: #000b; }
+@keyframes reveal {
+  from { opacity: 0; transform: scale(.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.snow {
+  position: fixed;
+  top: -20px;
+  color: white;
+  pointer-events: none;
+  animation: fall linear infinite;
+  opacity: .55;
+}
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(180deg); }
+}
+.winner {
+  padding: 15px;
+  margin: 10px;
+  border-bottom: 1px solid #75643e;
+}
+footer { padding: 25px; color: #b5ad95; }
+[hidden] { display: none !important; }
+@media(max-width: 500px) {
+  .calendar { gap: 6px; padding: 10px; }
+  .number { font-size: 18px; }
+  .symbol { font-size: 22px; }
+  .status { font-size: 9px; }
+  .panel { margin: 20px 10px; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .snow { display: none; }
+  * { animation: none !important; }
 }
 </style>
 </head>
 <body>
+
 <header>
   <div>✦ ❄ ✦</div>
   <h1>Le Calendrier des Viewers</h1>
   <p class="subtitle">
-    Bienvenue dans un royaume enchanté.<br>
-    25 jours, 25 mystères, 25 surprises.
+    25 jours de magie, de partage et de bienveillance.
   </p>
-  <p>✨ Tirage quotidien à 18h ✨</p>
+  <p>Du 1er au 25 décembre 2026</p>
+  <p id="connection">Connexion au royaume...</p>
 </header>
-<main class="calendar" id="calendar"></main>
+
+<main>
+  <p>📜 Parchemins enchantés · 🎁 Coffres légendaires</p>
+  <div class="calendar" id="calendar"></div>
+
+  <section class="panel">
+    <h2>🏆 Le Hall des Légendes</h2>
+    <p>Les heureux élus de notre aventure enchantée.</p>
+    <div id="winners"></div>
+  </section>
+
+  <section class="panel" id="adminPanel" hidden>
+    <h2>📖 Le Grimoire du Maître</h2>
+    <form id="loginForm">
+      <input id="email" type="email"
+        placeholder="Adresse e-mail" required>
+      <input id="password" type="password"
+        placeholder="Mot de passe" required>
+      <button class="action">Se connecter</button>
+    </form>
+    <div id="adminContent" hidden></div>
+    <p id="adminStatus" role="status"></p>
+  </section>
+</main>
+
+<dialog id="modal">
+  <div id="modalContent"></div>
+  <button class="action" id="closeModal">Refermer</button>
+</dialog>
+
 <footer>
-  Du 1er au 25 décembre 2026<br><br>
-  Aperçu du calendrier enchanté
+  <p>Créé avec magie et bienveillance pour notre communauté.</p>
+  <button class="action" id="adminButton">
+    🔐 Espace administrateur
+  </button>
 </footer>
+
 <script>
-const calendar = document.getElementById("calendar");
-for (let i = 1; i <= 25; i++) {
-  const door = document.createElement("button");
-  door.className = "door";
-  door.innerHTML = i + "<span>🔒</span>";
-  door.onclick = () => {
-    alert("Case " + i + " — Le mystère reste entier ! La participation sera disponible après la connexion à Supabase.");
-  };
-  calendar.appendChild(door);
+const db = window.supabase.createClient(
+  'https://sjrohgtzoljsyhoswrqw.supabase.co',
+  'sb_publishable_pJgjRdy-Q_lA7IjlXULXyA_GgPxYP88'
+);
+
+const specialDays = [10, 15, 20, 25];
+const $ = id => document.getElementById(id);
+let days = [];
+let countdown = null;
+
+function element(tag, text, parent) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  parent.appendChild(node);
+  return node;
 }
-</script>
-  <script>
-const supabaseUrl = "https://sjrohgtzoljsyhoswrqw.supabase.co";
-const publicKey = "sb_publishable_pJgjRdy-Q_lA7IjlXULXyA_GgPxYP88";
 
-document.querySelectorAll(".door").forEach((door, index) => {
-  door.onclick = async () => {
-    const day = index + 1;
-    const now = new Date();
-    const date = new Intl.DateTimeFormat("fr-FR", {
-      timeZone: "Europe/Paris"
-    }).format(now);
+function renderCalendar() {
+  $('calendar').replaceChildren();
 
-    const expected = String(day).padStart(2, "0") + "/12/2026";
+  for (let day = 1; day <= 25; day++) {
+    const special = specialDays.includes(day);
+    const available = days.some(d =>
+      d.day_number === day &&
+      d.is_active &&
+      Date.parse(d.opens_at) <= Date.now()
+    );
 
-    if (date !== expected) {
-      alert("🔒 Cette porte est fermée !");
-      return;
-    }
+    const button = document.createElement('button');
+    button.className = 'door' +
+      (special ? ' legendary' : '') +
+      (available ? '' : ' locked');
 
-    const username = prompt("✨ Entre ton pseudo Twitch :");
+    element('span', day, button).className = 'number';
+    element('span', special ? '🎁' : '📜', button)
+      .className = 'symbol';
+    element('span', available ? 'Ouvrir' : '🔒', button)
+      .className = 'status';
 
-    if (!username || !username.trim()) return;
+    button.onclick = () => openDay(day);
+    $('calendar').appendChild(button);
+  }
+}
 
-    try {
-      const response = await fetch(
-        supabaseUrl + "/rest/v1/rpc/register_participation",
-        {
-          method: "POST",
-          headers: {
-            "apikey": publicKey,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            p_day: day,
-            p_username: username.trim()
-          })
-        }
-      );
+async function loadCalendar() {
+  const { data, error } = await db
+    .from('advent_days')
+    .select('*')
+    .order('day_number');
 
-      if (!response.ok) {
-        alert("Impossible de valider la participation.");
+  if (error) {
+    $('connection').textContent =
+      'Connexion indisponible. Réessaie plus tard.';
+    days = [];
+  } else {
+    days = data || [];
+    $('connection').textContent =
+      '✦ Bienvenue dans le royaume enchanté ✦';
+  }
+
+  renderCalendar();
+}
+
+async function openDay(day) {
+  clearInterval(countdown);
+  await loadCalendar();
+
+  const content = $('modalContent');
+  content.replaceChildren();
+
+  const d = days.find(x =>
+    x.day_number === day &&
+    x.is_active &&
+    Date.parse(x.opens_at) <= Date.now()
+  );
+
+  if (!d) {
+    element('h2', '🔒 Case du ' + day + ' décembre', content);
+    element('p',
+      'Patience, la magie de cette case se révélera en temps voulu.',
+      content);
+    $('modal').showModal();
+    return;
+  }
+
+  element('h2',
+    d.is_giveaway ? '🎁 Coffre légendaire' : '📜 Parchemin enchanté',
+    content);
+  element('h3', d.gift_title || '', content);
+  element('p', d.gift_description || '', content);
+
+  if (d.is_giveaway) {
+    const timer = element('p', '', content);
+    const form = document.createElement('form');
+    const input = document.createElement('input');
+
+    input.placeholder = 'Ton pseudo Twitch';
+    input.required = true;
+    input.pattern = '[A-Za-z0-9_]{4,25}';
+    input.maxLength = 25;
+    form.appendChild(input);
+
+    const submit = element('button', 'Participer au tirage', form);
+    submit.className = 'action';
+
+    element('p',
+      'Ton pseudo sera publié si tu remportes le cadeau.',
+      form);
+
+    content.appendChild(form);
+    const message = element('p', '', content);
+    message.setAttribute('role', 'status');
+
+    function updateTimer() {
+      const remaining = Date.parse(d.closes_at) - Date.now();
+
+      if (remaining <= 0) {
+        timer.textContent = 'Les inscriptions sont terminées.';
+        form.hidden = true;
+        clearInterval(countdown);
         return;
       }
 
-      const result = await response.json();
-      alert(String(result));
-
-    } catch (error) {
-      alert("Erreur de connexion. Réessaie plus tard.");
+      const seconds = Math.floor(remaining / 1000);
+      timer.textContent = 'Tirage dans ' +
+        Math.floor(seconds / 3600) + 'h ' +
+        Math.floor(seconds % 3600 / 60) + 'min ' +
+        seconds % 60 + 's';
     }
+
+    countdown = setInterval(updateTimer, 1000);
+    updateTimer();
+
+    form.onsubmit = async event => {
+      event.preventDefault();
+      submit.disabled = true;
+
+      const { error } = await db.from('participations')
+        .insert({
+          day_number: day,
+          twitch_username: input.value.trim().toLowerCase()
+        });
+
+      if (!error) {
+        message.textContent = '✨ Participation enregistrée ! Bonne chance !';
+        form.hidden = true;
+      } else if (error.code === '23505') {
+        message.textContent = 'Tu participes déjà à ce tirage.';
+      } else {
+        message.textContent =
+          'Inscription impossible. Vérifie le pseudo et les horaires.';
+      }
+
+      submit.disabled = false;
+    };
+  }
+
+  $('modal').showModal();
+}
+
+$('closeModal').onclick = () => $('modal').close();
+$('modal').addEventListener('close', () => clearInterval(countdown));
+
+async function loadWinners() {
+  const { data, error } = await db
+    .from('public_winners')
+    .select('*')
+    .order('day_number');
+
+  const container = $('winners');
+  container.replaceChildren();
+
+  if (error) {
+    element('p', 'Historique temporairement indisponible.', container);
+    return;
+  }
+
+  for (const day of specialDays) {
+    const winner = (data || []).find(w => w.day_number === day);
+    const row = document.createElement('div');
+    row.className = 'winner';
+
+    element('h3', '🎁 ' + day + ' décembre', row);
+
+    if (winner) {
+      element('p', winner.gift_title, row);
+      element('p',
+        winner.winner ? '🏆 ' + winner.winner : 'Aucun participant',
+        row);
+      element('small',
+        winner.participant_count + ' participant(s)', row);
+    } else {
+      element('p', 'Tirage prévu à 10h — heure de Paris', row);
+    }
+
+    container.appendChild(row);
+  }
+}
+
+$('adminButton').onclick = () => {
+  $('adminPanel').hidden = !$('adminPanel').hidden;
+  if (!$('adminPanel').hidden) {
+    $('adminPanel').scrollIntoView({ behavior: 'smooth' });
+    checkAdmin();
+  }
+};
+
+$('loginForm').onsubmit = async event => {
+  event.preventDefault();
+
+  const { error } = await db.auth.signInWithPassword({
+    email: $('email').value,
+    password: $('password').value
+  });
+
+  $('password').value = '';
+
+  if (error) {
+    $('adminStatus').textContent = 'Connexion refusée.';
+    return;
+  }
+
+  await checkAdmin();
+};
+
+async function checkAdmin() {
+  const { data: sessionData } = await db.auth.getSession();
+  $('adminContent').replaceChildren();
+  $('adminContent').hidden = true;
+  $('loginForm').hidden = false;
+
+  if (!sessionData.session) return;
+
+  const { data, error } = await db.rpc('is_admin');
+
+  if (error || data !== true) {
+    await db.auth.signOut();
+    $('adminStatus').textContent = 'Accès non autorisé.';
+    return;
+  }
+
+  $('loginForm').hidden = true;
+  $('adminContent').hidden = false;
+  $('adminStatus').textContent = 'Bienvenue dans ton grimoire !';
+
+  await loadCalendar();
+
+  const container = $('adminContent');
+  const logout = element('button', 'Se déconnecter', container);
+  logout.className = 'action';
+
+  logout.onclick = async () => {
+    await db.auth.signOut();
+    $('adminStatus').textContent = '';
+    await checkAdmin();
+    await loadCalendar();
   };
-});
+
+  for (const day of days) {
+    const section = document.createElement('section');
+    section.className = 'winner';
+    element('h3', 'Case du ' + day.day_number + ' décembre', section);
+
+    const title = document.createElement('input');
+    title.value = day.gift_title || '';
+    section.appendChild(title);
+
+    const description = document.createElement('textarea');
+    description.value = day.gift_description || '';
+    section.appendChild(description);
+
+    const save = element('button', 'Enregistrer', section);
+    save.className = 'action';
+    const status = element('p', '', section);
+
+    save.onclick = async () => {
+      save.disabled = true;
+      const { error } = await db.from('advent_days')
+        .update({
+          gift_title: title.value,
+          gift_description: description.value
+        })
+        .eq('day_number', day.day_number);
+
+      status.textContent = error ?
+        'Modification refusée.' : '✨ Modification enregistrée.';
+      save.disabled = false;
+    };
+
+    if (day.is_giveaway) {
+      const list = element('p', '', section);
+      const { data: entries, error } = await db
+        .from('participations')
+        .select('twitch_username')
+        .eq('day_number', day.day_number);
+
+      list.textContent = error ?
+        'Participants indisponibles.' :
+        'Participants : ' +
+        ((entries || []).map(e => e.twitch_username).join(', ') || 'aucun');
+    }
+
+    container.appendChild(section);
+  }
+}
+
+for (let i = 0; i < 25; i++) {
+  const snow = document.createElement('span');
+  snow.className = 'snow';
+  snow.textContent = '❄';
+  snow.setAttribute('aria-hidden', 'true');
+  snow.style.left = Math.random() * 100 + '%';
+  snow.style.fontSize = 8 + Math.random() * 14 + 'px';
+  snow.style.animationDuration = 8 + Math.random() * 12 + 's';
+  snow.style.animationDelay = -Math.random() * 15 + 's';
+  document.body.appendChild(snow);
+}
+
+renderCalendar();
+loadCalendar();
+loadWinners();
+
+setInterval(() => {
+  loadCalendar();
+  loadWinners();
+}, 60000);
 </script>
 </body>
 </html>
