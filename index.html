@@ -640,5 +640,50 @@ $('redrawButton').addEventListener('click', async () => {
   }
 });
 </script>
+  <style>
+.magic-star {
+  position: fixed;
+  top: -30px;
+  color: #f8d77a;
+  text-shadow: 0 0 8px gold;
+  pointer-events: none;
+  z-index: 9999;
+  animation: magicFall linear forwards;
+}
+
+@keyframes magicFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+</style>
+
+<script>
+setInterval(() => {
+  const star = document.createElement('span');
+  star.className = 'magic-star';
+  star.textContent = Math.random() > 0.5 ? '✦' : '✧';
+  star.style.left = Math.random() * 100 + 'vw';
+  star.style.fontSize = (8 + Math.random() * 12) + 'px';
+  const duration = 7 + Math.random() * 6;
+  star.style.animationDuration = duration + 's';
+  document.body.appendChild(star);
+  setTimeout(() => star.remove(), duration * 1000);
+}, 800);
+</script>
 </body>
 </html>
