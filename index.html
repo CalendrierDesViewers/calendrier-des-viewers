@@ -189,6 +189,31 @@ footer { padding: 25px; color: #b5ad95; }
       <button class="action">Se connecter</button>
     </form>
     <div id="adminContent" hidden></div>
+    <div id="redrawPanel" hidden>
+  <h2>🎲 Gestion des tirages</h2>
+
+  <p>Choisir le coffre légendaire :</p>
+
+  <select id="redrawDay">
+    <option value="5">5 décembre</option>
+    <option value="10">10 décembre</option>
+    <option value="15">15 décembre</option>
+    <option value="20">20 décembre</option>
+    <option value="25">25 décembre</option>
+  </select>
+
+  <p>Motif d'exclusion du gagnant :</p>
+
+  <input id="redrawReason" type="text"
+    placeholder="Ancienneté inférieure à 10 jours">
+
+  <button class="action" id="redrawButton"
+    type="button">
+    🎲 Relancer le tirage
+  </button>
+
+  <p id="redrawStatus" role="status"></p>
+</div>
     <p id="adminStatus" role="status"></p>
   </section>
 </main>
@@ -532,6 +557,70 @@ setInterval(() => {
   loadCalendar();
   loadWinners();
 }, 60000);
+  const redrawPanel = $('redrawPanel');
+
+function syncRedrawPanel() {
+  redrawPanel.hidden = $('adminContent').hidden;
+}
+
+new MutationObserver(syncRedrawPanel).observe(
+  $('adminContent'),
+  { attributes: true, attributeFilter: ['hidden'] }
+);
+
+syncRedrawPanel();
+
+$('redrawButton').addEventListener('click', async () => {
+  const day = Number($('redrawDay').value);
+  const reason = $('redrawReason').value.trim();
+  const status = $('redrawStatus');
+  const button = $('redrawButton');
+
+  if (!reason) {
+    status.textContent = "Indique un motif d'exclusion.";
+    return;
+  }
+
+  if (!confirm(
+    "Exclure le gagnant actuel du " + day +
+    " décembre et relancer le tirage ?"
+  )) return;
+
+  button.disabled = true;
+  status.textContent = "Tirage en cours...";
+
+  try {
+    const { data, error } = await db.rpc(
+      'redraw_winner',
+      {
+        p_day: day,
+        p_reason: reason
+      }
+    );
+
+    if (error) throw error;
+
+    const messages = {
+      winner_selected: "🏆 Nouveau gagnant sélectionné !",
+      no_draw: "Le tirage initial n'a pas encore eu lieu.",
+      no_winner: "Aucun gagnant à remplacer.",
+      no_remaining_participants: "Aucun participant restant."
+    };
+
+    status.textContent = messages[data] || data;
+
+    if (data === 'winner_selected' ||
+        data === 'no_remaining_participants') {
+      $('redrawReason').value = '';
+      await loadWinners();
+    }
+
+  } catch (error) {
+    status.textContent = "Erreur : " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
 </script>
 </body>
 </html>
