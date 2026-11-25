@@ -280,6 +280,26 @@ footer { padding: 25px; color: #b5ad95; }
 #hallLegendes hr {
   margin: 12px 0 !important;
 }
+ /* POUSSIERE DE FEE */
+
+@keyframes poussiereFee {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+#hallLegendes::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, #ffe7a0 1px, transparent 4px),
+    radial-gradient(circle, #fff4cf 1px, transparent 3px),
+    radial-gradient(circle, #d6b36b 1px, transparent 5px);
+  background-size: 73px 91px, 117px 83px, 151px 127px;
+  animation: poussiereFee 4s ease-in-out infinite;
+}
 </style>
 </head>
 <body>
