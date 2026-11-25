@@ -7,13 +7,23 @@
 <title>Le Calendrier des Viewers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  #redrawPanel input,
-#redrawPanel select,
-#redrawPanel button {
+  input, textarea, select {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+textarea {
+  display: block;
+  width: 95% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+#redrawPanel {
   box-sizing: border-box;
-  width: 100%;
   max-width: 100%;
-  min-width: 0;
+  text-align: center;
 }
   html body {
   background-image:
